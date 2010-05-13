@@ -37,13 +37,12 @@ module AuditedChangeSet
 
       def initialize(name, new_val, old_val=nil)
         @name = name.to_s
-        @old_value, @new_value = [old_val, new_val].map {|val| transform_value(val) }
+        @new_value, @old_value = [new_val, old_val].map {|val| transform_value(val) }
       end
 
       def transform_value(val)
         hook(:transform_value, val) || (association_field? ? get_associated_object(val).to_s : val.to_s)
       end
-
 
       def association_class
         @association_class ||= begin
@@ -52,8 +51,8 @@ module AuditedChangeSet
         end
       end
 
-      def get_associated_object(val)
-        hook(:get_associated_object, val) || association_class.find_by_id(val)
+      def get_associated_object(id)
+        hook(:get_associated_object, id) || association_class.find_by_id(id)
       end
 
       def association_field?

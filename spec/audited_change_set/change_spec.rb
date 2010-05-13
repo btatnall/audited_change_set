@@ -259,11 +259,135 @@ module AuditedChangeSet
           end
             
           changes = { "title" => "irrelevant", "auditable_model_id" => ["1", "2"]}
-          yielded_fields ={"auditable_model_id" => ["more revenue", "less cost"]}
+          yielded_fields ={"auditable_model_id" => ["less cost", "more revenue"]}
 
           audit.stub(:action).and_return("create")
           audit.stub(:[]).and_return(changes)
           Change.new(audit, ["auditable_model_id"]).should yield_these(yielded_fields)
+        end
+      end
+    end
+
+    describe "hooks" do
+      let(:field_class)  { Class.new(Change::Field) }
+      let(:change_class) { Class.new(Change) }
+
+      describe "Field::transform_value" do
+        it "yields the new and old values" do
+          yielded_args = []
+          
+          field_class::hook(:transform_value) do |block_arg|
+            yielded_args << block_arg
+          end
+
+          field_class.new("anything", "new", "old")
+          yielded_args.should == ["new", "old"]
+        end
+
+        context "given the callback returns a non-nil value" do
+          it "uses the returned value" do
+            field_class::hook(:transform_value) do |block_arg|
+              "#{block_arg} modified by callback"
+            end
+
+            field = field_class.new("anything", "new value", "old value")
+
+            field.new_value.should == "new value modified by callback"
+            field.old_value.should == "old value modified by callback"
+          end
+        end
+
+        context "given the callback returns nil" do
+          it "uses it's unhooked value" do
+            field_class::hook(:transform_value) do |block_arg|
+              nil
+            end
+
+            field = field_class.new("anything", "new value", "old value")
+
+            field.new_value.should == "new value"
+            field.old_value.should == "old value"
+          end
+        end
+      end
+
+      describe "Field::get_associated_object" do
+        it "yields the id of the associated object" do
+          yielded_args = []
+          
+          field_class::hook(:get_associated_object) do |block_arg|
+            yielded_args << block_arg
+          end
+
+          field_class.new("audited_model_id", 37, 42)
+          yielded_args.should == [37, 42]
+        end
+
+        context "given the callback returns a non-nil value" do
+          it "uses the returned value" do
+            field_class::hook(:get_associated_object) do |block_arg|
+              "#{block_arg} returned by callback"
+            end
+
+            field = field_class.new("anything_id", "new value", "old value")
+
+            field.new_value.should == "new value returned by callback"
+            field.old_value.should == "old value returned by callback"
+          end
+        end
+
+        context "given the callback returns nil" do
+          it "uses the default strategy to find the associated object" do
+            returned_object = Object.new
+            AuditableModel.stub(:find_by_id).with(37) { returned_object }
+            field_class::hook(:get_associated_object) do |block_arg|
+              nil
+            end
+
+            field = field_class.new("auditable_model_id", 37)
+            field.new_value.should == returned_object.to_s
+          end
+        end
+      end
+
+      describe "Change::username" do
+        let(:user) { double("User") }
+        let(:audit) { double("Audit", :user => user, :username => "supplied username") }
+
+        it "yields the user" do
+          yielded_args = []
+          
+          change_class::hook(:username) do |user_arg|
+            yielded_args << user_arg
+          end
+
+          change = change_class.new(audit)
+          change.username # to invoke the hook
+          yielded_args.should == [user]
+        end
+
+        context "given the callback returns a non-nil value" do
+          it "uses the returned value" do
+            change_class::hook(:username) do |user_arg|
+              "returned username"
+            end
+
+            change = change_class.new(audit)
+            change.username.should == "returned username"
+          end
+        end
+
+        context "given the callback returns nil" do
+          it "uses the audit's username" do
+            yielded_args = []
+            
+            change_class::hook(:username) do |user_arg|
+              nil
+            end
+
+            change = change_class.new(audit)
+            change.username.should == "supplied username"
+          end
         end
       end
     end
