@@ -1,0 +1,6 @@
+require "active_record"
+require "active_record/base"
+require "acts_as_audited"
+require "acts_as_audited/audit"
+require "audited_change_set/change"
+require "audited_change_set/change_set"
