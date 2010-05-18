@@ -35,7 +35,7 @@ module AuditedChangeSet
     end
 
     context "change_set for an auditable model" do
-      let(:auditable_model) { stub(AuditableModel, :name => 'irrelevant') }
+      let(:auditable_model) { stub(Person, :name => 'irrelevant') }
       let(:change_set) { ChangeSet.new(auditable_model) } 
 
       describe "#each" do

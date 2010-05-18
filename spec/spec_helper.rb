@@ -11,5 +11,6 @@ ActiveRecord::Base.establish_connection(
 ActiveRecord::Migration.verbose = false
 load(File.dirname(__FILE__) + "/db/schema.rb")
 
-class AuditableModel < ActiveRecord::Base; end
-
+class Person < ActiveRecord::Base
+  belongs_to :parent, :class_name => name, :foreign_key => "parent_id"
+end

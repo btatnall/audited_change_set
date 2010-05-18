@@ -1,3 +1,4 @@
+require "rubygems"
 require "active_record"
 require "active_record/base"
 require "acts_as_audited"

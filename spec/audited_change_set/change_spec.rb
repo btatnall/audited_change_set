@@ -3,7 +3,7 @@ require 'spec_helper'
 module AuditedChangeSet
   describe Change do
 
-    let(:audit) { double(Audit) }
+    let(:audit) { double(Audit, :auditable_type => "Person") }
 
     describe "::for_audits" do
       let(:audits) {[double(Audit), double(Audit)]}
@@ -207,13 +207,13 @@ module AuditedChangeSet
       context "field is an association" do
 
         before :each do
-          AuditableModel.stub(:find_by_id).and_return(nil)
-          AuditableModel.stub(:find_by_id).with("1").and_return(double(AuditableModel, :to_s => 'to_s_ified'))
+          Person.stub(:find_by_id).and_return(nil)
+          Person.stub(:find_by_id).with("1").and_return(double(Person, :to_s => 'to_s_ified'))
         end
 
         it "uses associated object for new value" do
-          changes = { "auditable_model_id" => "1"}
-          yielded_fields ={"auditable_model_id" => ["", "to_s_ified"]}
+          changes = { "person_id" => "1"}
+          yielded_fields ={"person_id" => ["", "to_s_ified"]}
 
           audit.stub(:action).and_return("create")
           audit.stub(:[]).and_return(changes)
@@ -221,11 +221,21 @@ module AuditedChangeSet
         end
 
         it "uses associated object for old value" do
-          changes = { "auditable_model_id" => ["1", nil]}
-          yielded_fields ={"auditable_model_id" => ["to_s_ified", ""]}
+          changes = { "person_id" => ["1", nil]}
+          yielded_fields ={"person_id" => ["to_s_ified", ""]}
 
           audit.stub(:action).and_return("create")
           audit.stub(:[]).and_return(changes)
+          Change.new(audit).should yield_these(yielded_fields)
+        end
+
+        it "reflects on association for belongs_to" do
+          changes = { "parent_id" => ["1", nil]}
+          yielded_fields ={"parent_id" => ["to_s_ified", ""]}
+
+          audit.stub(:action).and_return("create")
+          audit.stub(:[]).and_return(changes)
+
           Change.new(audit).should yield_these(yielded_fields)
         end
       end
@@ -251,19 +261,19 @@ module AuditedChangeSet
 
         it "uses only the relevant fields that are associations" do
           models = [
-            double(AuditableModel, :to_s => "more revenue"),
-            double(AuditableModel, :to_s => "less cost")
+            double(Person, :to_s => "more revenue"),
+            double(Person, :to_s => "less cost")
           ]
-          AuditableModel.stub(:find_by_id) do |options|
+          Person.stub(:find_by_id) do |options|
             models.shift
           end
             
-          changes = { "title" => "irrelevant", "auditable_model_id" => ["1", "2"]}
-          yielded_fields ={"auditable_model_id" => ["less cost", "more revenue"]}
+          changes = { "title" => "irrelevant", "person_id" => ["1", "2"]}
+          yielded_fields ={"person_id" => ["less cost", "more revenue"]}
 
           audit.stub(:action).and_return("create")
           audit.stub(:[]).and_return(changes)
-          Change.new(audit, ["auditable_model_id"]).should yield_these(yielded_fields)
+          Change.new(audit, ["person_id"]).should yield_these(yielded_fields)
         end
       end
     end
@@ -280,7 +290,7 @@ module AuditedChangeSet
             yielded_args << block_arg
           end
 
-          field_class.new("anything", "new", "old")
+          field_class.new("Person", "anything", "new", "old")
           yielded_args.should == ["new", "old"]
         end
 
@@ -290,7 +300,7 @@ module AuditedChangeSet
               "#{block_arg} modified by callback"
             end
 
-            field = field_class.new("anything", "new value", "old value")
+            field = field_class.new("Person", "anything", "new value", "old value")
 
             field.new_value.should == "new value modified by callback"
             field.old_value.should == "old value modified by callback"
@@ -303,7 +313,7 @@ module AuditedChangeSet
               nil
             end
 
-            field = field_class.new("anything", "new value", "old value")
+            field = field_class.new("Person", "anything", "new value", "old value")
 
             field.new_value.should == "new value"
             field.old_value.should == "old value"
@@ -319,7 +329,7 @@ module AuditedChangeSet
             yielded_args << block_arg
           end
 
-          field_class.new("audited_model_id", 37, 42)
+          field_class.new("Person", "anything_id", 37, 42)
           yielded_args.should == [37, 42]
         end
 
@@ -329,7 +339,7 @@ module AuditedChangeSet
               "#{block_arg} returned by callback"
             end
 
-            field = field_class.new("anything_id", "new value", "old value")
+            field = field_class.new("Person", "anything_id", "new value", "old value")
 
             field.new_value.should == "new value returned by callback"
             field.old_value.should == "old value returned by callback"
@@ -339,12 +349,12 @@ module AuditedChangeSet
         context "given the callback returns nil" do
           it "uses the default strategy to find the associated object" do
             returned_object = Object.new
-            AuditableModel.stub(:find_by_id).with(37) { returned_object }
+            Person.stub(:find_by_id).with(37) { returned_object }
             field_class::hook(:get_associated_object) do |block_arg|
               nil
             end
 
-            field = field_class.new("auditable_model_id", 37)
+            field = field_class.new("Person", "person_id", 37)
             field.new_value.should == returned_object.to_s
           end
         end

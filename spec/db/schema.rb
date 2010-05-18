@@ -11,5 +11,7 @@ ActiveRecord::Schema.define(:version => 0) do
     t.column :created_at, :datetime
   end
 
-  create_table :auditable_models do; end
+  create_table :people do |t|
+    t.integer :parent_id
+  end
 end

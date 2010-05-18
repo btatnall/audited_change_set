@@ -35,7 +35,8 @@ module AuditedChangeSet
 
       attr_reader :name, :old_value, :new_value
 
-      def initialize(name, new_val, old_val=nil)
+      def initialize(change_type, name, new_val, old_val=nil)
+        @change_type = change_type
         @name = name.to_s
         @new_value, @old_value = [new_val, old_val].map {|val| transform_value(val) }
       end
@@ -46,9 +47,18 @@ module AuditedChangeSet
 
       def association_class
         @association_class ||= begin
-          name.to_s =~ /(.*)_id$/
-          $1.camelize.constantize
+          if reflection
+            reflection.options[:class_name].constantize
+          else
+            name.to_s =~ /(.*)_id$/
+            $1.camelize.constantize
+          end
         end
+      end
+
+      def reflection
+        change_class = @change_type.constantize
+        @reflection ||= change_class.reflect_on_association(name_without_id.to_sym) if change_class.respond_to?(:reflect_on_association)
       end
 
       def get_associated_object(id)
@@ -57,6 +67,10 @@ module AuditedChangeSet
 
       def association_field?
         name.ends_with? "_id"
+      end
+
+      def name_without_id
+        name.chomp "_id"
       end
     end
 
@@ -85,7 +99,7 @@ module AuditedChangeSet
     end
 
     def create_field(name, changes)
-      Field.new(name,*[changes].flatten.reverse) 
+      Field.new(@audit.auditable_type, name, *[changes].flatten.reverse)
     end
 
     delegate :id, :to => :@audit
