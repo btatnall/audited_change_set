@@ -9,20 +9,22 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["David Chelimsky", "Brian Tatnall", "Nate Jackson", "Corey Haines"]
-  s.date = %q{2010-05-13}
+  s.date = %q{2010-05-18}
   s.description = %q{change_set for acts_as_audited}
   s.email = %q{dchelimsky@gmail.com}
   s.extra_rdoc_files = [
     "LICENSE",
-     "README.rdoc"
+     "README.markdown"
   ]
   s.files = [
     ".document",
      ".gitignore",
      ".rspec",
      "LICENSE",
-     "README.rdoc",
+     "README.markdown",
      "Rakefile",
+     "VERSION",
+     "audited_change_set.gemspec",
      "lib/audited_change_set.rb",
      "lib/audited_change_set/change.rb",
      "lib/audited_change_set/change_set.rb",
@@ -38,9 +40,9 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.6}
   s.summary = %q{change_set for acts_as_audited}
   s.test_files = [
-    "spec/audited_change_set/change_set_spec.rb",
+    "spec/db/schema.rb",
      "spec/audited_change_set/change_spec.rb",
-     "spec/db/schema.rb",
+     "spec/audited_change_set/change_set_spec.rb",
      "spec/spec_helper.rb"
   ]
 
