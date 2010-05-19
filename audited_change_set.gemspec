@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{audited_change_set}
-  s.version = "0.0.2"
+  s.version = "0.0.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["David Chelimsky", "Brian Tatnall", "Nate Jackson", "Corey Haines"]
-  s.date = %q{2010-05-18}
+  s.date = %q{2010-05-19}
   s.description = %q{change_set for acts_as_audited}
   s.email = %q{dchelimsky@gmail.com}
   s.extra_rdoc_files = [
