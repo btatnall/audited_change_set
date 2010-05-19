@@ -33,6 +33,8 @@ module AuditedChangeSet
     class Field
       include Hooks
 
+      @@display_methods = %w[field_name name to_s]
+
       attr_reader :name, :old_value, :new_value
 
       def initialize(change_type, name, new_val, old_val=nil)
@@ -42,7 +44,12 @@ module AuditedChangeSet
       end
 
       def transform_value(val)
-        hook(:transform_value, val) || (association_field? ? get_associated_object(val).to_s : val.to_s)
+        hook(:transform_value, val) || (association_field? ? associated_value(val) : val.to_s)
+      end
+
+      def associated_value(val)
+        object = get_associated_object(val)
+        object.send(display_method(object))
       end
 
       def association_class
@@ -71,6 +78,11 @@ module AuditedChangeSet
 
       def name_without_id
         name.chomp "_id"
+      end
+
+      private
+      def display_method(object)
+        @@display_methods.detect { |m| object.respond_to?(m) }
       end
     end
 

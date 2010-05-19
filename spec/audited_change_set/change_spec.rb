@@ -205,38 +205,59 @@ module AuditedChangeSet
       end
 
       context "field is an association" do
+        context "finds associated object" do
+          before :each do
+            Person.stub(:find_by_id).and_return(nil)
+            Person.stub(:find_by_id).with("1").and_return(double(Person, :to_s => 'to_s_ified'))
+          end
 
-        before :each do
-          Person.stub(:find_by_id).and_return(nil)
-          Person.stub(:find_by_id).with("1").and_return(double(Person, :to_s => 'to_s_ified'))
+          it "for new value" do
+            changes = { "person_id" => "1"}
+            yielded_fields ={"person_id" => ["", "to_s_ified"]}
+
+            audit.stub(:[]).and_return(changes)
+            Change.new(audit).should yield_these(yielded_fields)
+          end
+
+          it "for old value" do
+            changes = { "person_id" => ["1", nil]}
+            yielded_fields ={"person_id" => ["to_s_ified", ""]}
+
+            audit.stub(:[]).and_return(changes)
+            Change.new(audit).should yield_these(yielded_fields)
+          end
+
+          it "by reflecting on belongs_to association" do
+            changes = { "parent_id" => ["1", nil]}
+            yielded_fields ={"parent_id" => ["to_s_ified", ""]}
+
+            audit.stub(:[]).and_return(changes)
+            Change.new(audit).should yield_these(yielded_fields)
+          end
         end
 
-        it "uses associated object for new value" do
-          changes = { "person_id" => "1"}
-          yielded_fields ={"person_id" => ["", "to_s_ified"]}
+        context "display" do
+          before :each do
+            Person.stub(:find_by_id).with("1").and_return(double(Person, :to_s => 'to_sified'))
+            Person.stub(:find_by_id).with("2").and_return(double(Person, :name => 'name_method', :to_s => 'to_sified'))
+            Person.stub(:find_by_id).with("3").and_return(double(Person, :field_name => 'field_name_method', :name => 'name_method'))
+          end
 
-          audit.stub(:action).and_return("create")
-          audit.stub(:[]).and_return(changes)
-          Change.new(audit).should yield_these(yielded_fields)
-        end
+          it "uses name before to_s" do
+            changes = { "parent_id" => ["1", "2"]}
+            yielded_fields = {"parent_id" => ["to_sified", "name_method"]}
+            audit.stub(:[]).and_return(changes)
 
-        it "uses associated object for old value" do
-          changes = { "person_id" => ["1", nil]}
-          yielded_fields ={"person_id" => ["to_s_ified", ""]}
+            Change.new(audit).should yield_these(yielded_fields)
+          end
 
-          audit.stub(:action).and_return("create")
-          audit.stub(:[]).and_return(changes)
-          Change.new(audit).should yield_these(yielded_fields)
-        end
+          it "uses field name before name" do
+            changes = { "parent_id" => ["3", "2"]}
+            yielded_fields = {"parent_id" => ["field_name_method", "name_method"]}
+            audit.stub(:[]).and_return(changes)
 
-        it "reflects on association for belongs_to" do
-          changes = { "parent_id" => ["1", nil]}
-          yielded_fields ={"parent_id" => ["to_s_ified", ""]}
-
-          audit.stub(:action).and_return("create")
-          audit.stub(:[]).and_return(changes)
-
-          Change.new(audit).should yield_these(yielded_fields)
+            Change.new(audit).should yield_these(yielded_fields)
+          end
         end
       end
 
