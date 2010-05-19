@@ -47,8 +47,8 @@ module AuditedChangeSet
 
       def association_class
         @association_class ||= begin
-          if reflection
-            reflection.options[:class_name].constantize
+          if reflection && class_name = reflection.options[:class_name]
+            class_name.constantize
           else
             name.to_s =~ /(.*)_id$/
             $1.camelize.constantize
