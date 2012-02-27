@@ -70,7 +70,7 @@ module AuditedChangeSet
     describe "#field_names" do
       it "returns a list of field names for this change" do
         audit_changes = {'intent' => [nil, 'irrelevant'], 'name' => [nil, 'irrelevant'], 'executive_status' => [nil, '']}
-        audit.stub(:[]).with(:changes).and_return(audit_changes)
+        audit.stub(:[]).with(:audited_changes).and_return(audit_changes)
         change = Change.new(audit)
         change.field_names.should == ['name', 'intent']
       end
@@ -113,19 +113,19 @@ module AuditedChangeSet
     describe "#relevant?" do
       context "any of the audits match the specified fields" do
         it "returns true" do
-          audit.stub(:[]).with(:changes).and_return("intent" => "irrelevant")
+          audit.stub(:[]).with(:audited_changes).and_return("intent" => "irrelevant")
           Change.new(audit, ["intent"]).should be_relevant
         end
       end
       context "none of the audits match the specified fields" do
         it "returns false" do
-          audit.stub(:[]).with(:changes).and_return("name" => "irrelevant")
+          audit.stub(:[]).with(:audited_changes).and_return("name" => "irrelevant")
           Change.new(audit, ["intent"]).should_not be_relevant
         end
       end
       context "no specified fields" do
         it "returns true" do
-          audit.stub(:[]).with(:changes).and_return("intent" => "irrelevant")
+          audit.stub(:[]).with(:audited_changes).and_return("intent" => "irrelevant")
           Change.new(audit).should be_relevant
         end
       end
