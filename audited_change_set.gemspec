@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "audited_change_set"
-  s.version = "0.0.5"
+  s.version = "0.0.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["David Chelimsky", "Brian Tatnall", "Nate Jackson", "Corey Haines", "Justin Dell"]
