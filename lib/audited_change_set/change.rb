@@ -44,7 +44,7 @@ module AuditedChangeSet
       end
 
       def transform_value(val)
-        hook(:transform_value, val) || (association_field? ? associated_value(val) : val.to_s)
+        hook(:transform_value, val) || (association_class ? associated_value(val) : val.to_s)
       end
 
       def associated_value(val)
@@ -60,6 +60,8 @@ module AuditedChangeSet
             name.to_s =~ /(.*)_id$/
             $1.camelize.constantize
           end
+        ensure
+          nil
         end
       end
 
@@ -70,10 +72,6 @@ module AuditedChangeSet
 
       def get_associated_object(id)
         hook(:get_associated_object, id) || association_class.find_by_id(id)
-      end
-
-      def association_field?
-        name.ends_with? "_id"
       end
 
       def name_without_id
