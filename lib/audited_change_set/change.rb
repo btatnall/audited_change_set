@@ -60,7 +60,7 @@ module AuditedChangeSet
             name.to_s =~ /(.*)_id$/
             $1.camelize.constantize
           end
-        ensure
+        rescue Exception
           nil
         end
       end

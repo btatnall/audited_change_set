@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
   ]
   s.homepage = "http://github.com/dchelimsky/audited_change_set"
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.17"
+  s.rubygems_version = "1.8.15"
   s.summary = "change_set for acts_as_audited"
 
   if s.respond_to? :specification_version then
