@@ -151,7 +151,7 @@ module AuditedChangeSet
     end
 
     def non_empty_fields
-      @audit[:changes].reject { |name, val| val.to_s.empty? }
+      @audit[:audited_changes].reject { |name, val| val.to_s.empty? }
     end
   end
 end
